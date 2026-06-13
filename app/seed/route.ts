@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import postgres from 'postgres';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
+import { DATABASE_CONNECTION_ERROR_MESSAGE, isDatabaseConnectionError } from '../lib/db-error';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
@@ -112,6 +113,11 @@ export async function GET() {
 
     return Response.json({ message: 'Database seeded successfully' });
   } catch (error) {
+    if (isDatabaseConnectionError(error)) {
+      console.error('Database Error:', error);
+      return Response.json({ error: DATABASE_CONNECTION_ERROR_MESSAGE }, { status: 503 });
+    }
+
     return Response.json({ error }, { status: 500 });
   }
 }
